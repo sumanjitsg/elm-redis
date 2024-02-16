@@ -7,10 +7,12 @@
   "author": "Sumanjit Sengupta",
   "license": "MIT",
   "scripts": {
-    "build:dev": "npx elm make src/Main.elm --output=dist/elm.js && npx tsc src/index.ts --outDir dist/",
+    "build:dev": "npx elm make src/Main.elm --output=dist/elm.js && npx tsc -p tsconfig.json",
     "format": "elm-format src/ --yes"
   },
   "devDependencies": {
+    "@types/elm": "^0.19.3",
+    "@types/node": "^20.11.19",
     "elm": "^0.19.1-6",
     "elm-format": "^0.8.7",
     "typescript": "^5.3.3"
