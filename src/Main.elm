@@ -1,4 +1,3 @@
-
 port module Main exposing (log, main)
 
 import Platform exposing (worker)
@@ -13,4 +12,3 @@ main =
         , subscriptions = \_ -> Sub.none
         , update = \msg model -> ( model, Cmd.none )
         }
-
