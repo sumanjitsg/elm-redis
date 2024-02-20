@@ -7,6 +7,7 @@
   "author": "Sumanjit Sengupta",
   "license": "MIT",
   "scripts": {
+    "test": "npx elm-test",
     "build": "npx elm make src/Main.elm --optimize --output=dist/elm.js && npx tsc -p tsconfig.json",
     "format": "elm-format src/ --yes"
   },
