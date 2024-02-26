@@ -1,6 +1,6 @@
 module Resp.SimpleStringParser exposing (Problem(..), parser)
 
-import Parser.Advanced exposing (..)
+import Parser.Advanced as Parser exposing ((|.), (|=))
 
 
 type Problem
@@ -8,8 +8,8 @@ type Problem
     | ExpectingCrlf
 
 
-parser : Parser () Problem String
+parser : Parser.Parser () Problem String
 parser =
-    succeed identity
-        |. symbol (Token "+" ExpectingPlus)
-        |= getChompedString (chompUntil (Token "\u{000D}\n" ExpectingCrlf))
+    Parser.succeed identity
+        |. Parser.symbol (Parser.Token "+" ExpectingPlus)
+        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
