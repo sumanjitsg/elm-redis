@@ -8,7 +8,7 @@ import Test
 
 testSuite : Test.Test
 testSuite =
-    Test.describe "Simple String Parser"
+    Test.describe "RESP Simple String Parser"
         [ Test.test "parses non-empty simple strings correctly" <|
             \_ ->
                 "+OK\u{000D}\n"
