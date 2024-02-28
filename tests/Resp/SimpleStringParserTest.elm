@@ -29,11 +29,11 @@ testSuite =
                 "OK\u{000D}\n"
                     |> Parser.run Resp.SimpleStringParser.parser
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.SimpleStringParser.ExpectingPlus ])
+                    |> Expect.equal (Err [ Resp.SimpleStringParser.problemExpectingPlus ])
         , Test.test "fails on strings without trailing '\\r\\n'" <|
             \_ ->
                 "+OK\n"
                     |> Parser.run Resp.SimpleStringParser.parser
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.SimpleStringParser.ExpectingCrlf ])
+                    |> Expect.equal (Err [ Resp.SimpleStringParser.problemExpectingCrlf ])
         ]
