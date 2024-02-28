@@ -1,4 +1,4 @@
-module Resp.BulkStringParser exposing (Problem(..), parser)
+module Resp.BulkStringParser exposing (Problem, parser)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
