@@ -1,4 +1,4 @@
-module Resp.BulkStringParser exposing (Problem, parser)
+module Resp.BulkStringParser exposing (Problem, parser, problemExpectingCrlf, problemExpectingDollar, problemExpectingInteger, problemExpectingLengthMismatch, problemExpectingMinusOne)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
@@ -10,6 +10,31 @@ type Problem
     | InvalidNumber
     | ExpectingLengthMismatch
     | ExpectingMinusOne
+
+
+problemExpectingDollar : Problem
+problemExpectingDollar =
+    ExpectingDollar
+
+
+problemExpectingCrlf : Problem
+problemExpectingCrlf =
+    ExpectingCrlf
+
+
+problemExpectingMinusOne : Problem
+problemExpectingMinusOne =
+    ExpectingMinusOne
+
+
+problemExpectingInteger : Problem
+problemExpectingInteger =
+    ExpectingInteger
+
+
+problemExpectingLengthMismatch : Problem
+problemExpectingLengthMismatch =
+    ExpectingLengthMismatch
 
 
 parser : Parser.Parser () Problem (Maybe String)
