@@ -21,9 +21,9 @@ testSuite =
                     |> Expect.equal (Ok "")
         , Test.test "parses strings containing '+' correctly" <|
             \_ ->
-                "++\u{000D}\n"
+                "++O+K+\u{000D}\n"
                     |> Parser.run Resp.SimpleStringParser.parser
-                    |> Expect.equal (Ok "+")
+                    |> Expect.equal (Ok "+O+K+")
         , Test.test "fails on strings without leading '+'" <|
             \_ ->
                 "OK\u{000D}\n"
@@ -31,6 +31,12 @@ testSuite =
                     |> Result.mapError (List.map .problem)
                     |> Expect.equal (Err [ Resp.SimpleStringParser.problemExpectingPlus ])
         , Test.test "fails on strings without trailing '\\r\\n'" <|
+            \_ ->
+                "+OK"
+                    |> Parser.run Resp.SimpleStringParser.parser
+                    |> Result.mapError (List.map .problem)
+                    |> Expect.equal (Err [ Resp.SimpleStringParser.problemExpectingCrlf ])
+        , Test.test "fails on strings ending with '\\n' instead of '\\r\\n'" <|
             \_ ->
                 "+OK\n"
                     |> Parser.run Resp.SimpleStringParser.parser
