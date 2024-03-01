@@ -19,6 +19,11 @@ testSuite =
                 "$0\u{000D}\n\u{000D}\n"
                     |> Parser.run Resp.BulkStringParser.parser
                     |> Expect.equal (Ok (Just ""))
+        , Test.test "parses strings containing '$' correctly" <|
+            \_ ->
+                "$5\u{000D}\n$O$K$\u{000D}\n"
+                    |> Parser.run Resp.BulkStringParser.parser
+                    |> Expect.equal (Ok (Just "$O$K$"))
         , Test.test "parses null bulk strings correctly" <|
             \_ ->
                 "$-1\u{000D}\n"
@@ -79,6 +84,18 @@ testSuite =
         , Test.test "fails on bulk strings without '\\r\\n' between the integer and the data" <|
             \_ ->
                 "$5hello\u{000D}\n"
+                    |> Parser.run Resp.BulkStringParser.parser
+                    |> Result.mapError (List.map .problem)
+                    |> Expect.equal (Err [ Resp.BulkStringParser.problemExpectingCrlf ])
+        , Test.test "fails on error strings having '\\n' instead of '\\r\\n' after the integer" <|
+            \_ ->
+                "$2\nOK\u{000D}\n"
+                    |> Parser.run Resp.BulkStringParser.parser
+                    |> Result.mapError (List.map .problem)
+                    |> Expect.equal (Err [ Resp.BulkStringParser.problemExpectingCrlf ])
+        , Test.test "fails on error strings ending with '\\n' instead of '\\r\\n'" <|
+            \_ ->
+                "$2\u{000D}\nOK\n"
                     |> Parser.run Resp.BulkStringParser.parser
                     |> Result.mapError (List.map .problem)
                     |> Expect.equal (Err [ Resp.BulkStringParser.problemExpectingCrlf ])
