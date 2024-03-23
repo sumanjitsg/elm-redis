@@ -1,4 +1,4 @@
-module Resp.Problem exposing (Problem(..))
+module Resp.Decoder exposing (Problem(..), Value(..))
 
 
 type Problem
@@ -11,3 +11,9 @@ type Problem
     | ExpectingMinusOne
     | ExpectingMinusCharacter
     | ExpectingAsterisk
+
+
+type Value
+    = SimpleString String
+    | BulkString (Maybe String)
+    | Array (List Value)
