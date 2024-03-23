@@ -1,33 +1,15 @@
-module Resp.SimpleStringParser exposing (Problem, parser, problemExpectingCrlf, problemExpectingPlus)
+module Resp.SimpleStringParser exposing (parser)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
-
-
-
--- PROBLEM
-
-
-type Problem
-    = ExpectingPlus
-    | ExpectingCrlf
-
-
-problemExpectingPlus : Problem
-problemExpectingPlus =
-    ExpectingPlus
-
-
-problemExpectingCrlf : Problem
-problemExpectingCrlf =
-    ExpectingCrlf
+import Resp.Problem
 
 
 
 -- PARSER
 
 
-parser : Parser.Parser () Problem String
+parser : Parser.Parser () Resp.Problem.Problem String
 parser =
     Parser.succeed identity
-        |. Parser.symbol (Parser.Token "+" ExpectingPlus)
-        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
+        |. Parser.symbol (Parser.Token "+" Resp.Problem.ExpectingPlus)
+        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf))

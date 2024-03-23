@@ -2,6 +2,7 @@ module Resp.SimpleErrorParserTest exposing (testSuite)
 
 import Expect
 import Parser.Advanced as Parser
+import Resp.Problem
 import Resp.SimpleErrorParser
 import Test
 
@@ -29,17 +30,17 @@ testSuite =
                 "OK\u{000D}\n"
                     |> Parser.run Resp.SimpleErrorParser.parser
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.SimpleErrorParser.problemExpectingMinusCharacter ])
+                    |> Expect.equal (Err [ Resp.Problem.ExpectingMinusCharacter ])
         , Test.test "fails on error strings without trailing '\\r\\n'" <|
             \_ ->
                 "-OK"
                     |> Parser.run Resp.SimpleErrorParser.parser
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.SimpleErrorParser.problemExpectingCrlf ])
+                    |> Expect.equal (Err [ Resp.Problem.ExpectingCrlf ])
         , Test.test "fails on error strings ending with '\\n' instead of '\\r\\n'" <|
             \_ ->
                 "-OK\n"
                     |> Parser.run Resp.SimpleErrorParser.parser
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.SimpleErrorParser.problemExpectingCrlf ])
+                    |> Expect.equal (Err [ Resp.Problem.ExpectingCrlf ])
         ]

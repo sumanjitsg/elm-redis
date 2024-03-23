@@ -1,75 +1,47 @@
-module Resp.BulkStringParser exposing (Problem, parser, problemExpectingCrlf, problemExpectingDollar, problemExpectingInteger, problemExpectingLengthMismatch, problemExpectingMinusOne)
+module Resp.BulkStringParser exposing (parser)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
+import Resp.Problem
 
 
-type Problem
-    = ExpectingDollar
-    | ExpectingCrlf
-    | ExpectingInteger
-    | InvalidNumber
-    | ExpectingLengthMismatch
-    | ExpectingMinusOne
+
+-- TODO: the number is an unsigned, base-10 value (except -1).
+-- PARSER
 
 
-problemExpectingDollar : Problem
-problemExpectingDollar =
-    ExpectingDollar
-
-
-problemExpectingCrlf : Problem
-problemExpectingCrlf =
-    ExpectingCrlf
-
-
-problemExpectingMinusOne : Problem
-problemExpectingMinusOne =
-    ExpectingMinusOne
-
-
-problemExpectingInteger : Problem
-problemExpectingInteger =
-    ExpectingInteger
-
-
-problemExpectingLengthMismatch : Problem
-problemExpectingLengthMismatch =
-    ExpectingLengthMismatch
-
-
-parser : Parser.Parser () Problem (Maybe String)
+parser : Parser.Parser () Resp.Problem.Problem (Maybe String)
 parser =
     Parser.succeed identity
-        |. Parser.symbol (Parser.Token "$" ExpectingDollar)
+        |. Parser.symbol (Parser.Token "$" Resp.Problem.ExpectingDollar)
         |= Parser.oneOf
             [ Parser.map (\_ -> Nothing) nullValueParser
             , Parser.map Just stringValueParser
             ]
 
 
-stringValueParser : Parser.Parser () Problem String
+stringValueParser : Parser.Parser () Resp.Problem.Problem String
 stringValueParser =
     Parser.succeed Tuple.pair
-        |= Parser.int ExpectingInteger InvalidNumber
-        |. Parser.symbol (Parser.Token "\u{000D}\n" ExpectingCrlf)
-        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
+        |= Parser.int Resp.Problem.ExpectingInteger Resp.Problem.InvalidNumber
+        |. Parser.symbol (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf)
+        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf))
         |> Parser.andThen (uncurry expectLength)
 
 
-expectLength : Int -> String -> Parser.Parser () Problem String
+expectLength : Int -> String -> Parser.Parser () Resp.Problem.Problem String
 expectLength len str =
     if String.length str == len then
         Parser.succeed str
 
     else
-        Parser.problem ExpectingLengthMismatch
+        Parser.problem Resp.Problem.ExpectingLengthMismatch
 
 
-nullValueParser : Parser.Parser () Problem ()
+nullValueParser : Parser.Parser () Resp.Problem.Problem ()
 nullValueParser =
     Parser.succeed ()
-        |. Parser.symbol (Parser.Token "-1" ExpectingMinusOne)
-        |. Parser.symbol (Parser.Token "\u{000D}\n" ExpectingCrlf)
+        |. Parser.symbol (Parser.Token "-1" Resp.Problem.ExpectingMinusOne)
+        |. Parser.symbol (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf)
 
 
 uncurry : (a -> b -> c) -> ( a, b ) -> c
