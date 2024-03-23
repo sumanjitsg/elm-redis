@@ -13,3 +13,4 @@ parser =
     Parser.succeed identity
         |. Parser.symbol (Parser.Token "+" Resp.Problem.ExpectingPlus)
         |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf))
+        |. Parser.symbol (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf)

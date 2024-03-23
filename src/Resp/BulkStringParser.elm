@@ -25,6 +25,7 @@ stringValueParser =
         |= Parser.int Resp.Problem.ExpectingInteger Resp.Problem.InvalidNumber
         |. Parser.symbol (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf)
         |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf))
+        |. Parser.symbol (Parser.Token "\u{000D}\n" Resp.Problem.ExpectingCrlf)
         |> Parser.andThen (uncurry expectLength)
 
 
