@@ -41,7 +41,7 @@ expectLength len str =
 nullValueParser : Parser.Parser () Resp.Decoder.Problem ()
 nullValueParser =
     Parser.succeed ()
-        |. Parser.symbol (Parser.Token "-1" Resp.Decoder.ExpectingMinusOne)
+        |. Parser.symbol (Parser.Token "-1" Resp.Decoder.ExpectingInteger)
         |. Parser.symbol (Parser.Token "\u{000D}\n" Resp.Decoder.ExpectingCrlf)
 
 

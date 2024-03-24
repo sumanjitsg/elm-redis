@@ -43,7 +43,7 @@ testSuite =
                     |> Result.mapError (List.map .problem)
                     |> Expect.equal
                         (Err
-                            [ Resp.Decoder.ExpectingMinusOne
+                            [ Resp.Decoder.ExpectingInteger
                             , Resp.Decoder.ExpectingInteger
                             ]
                         )
@@ -54,7 +54,7 @@ testSuite =
                     |> Result.mapError (List.map .problem)
                     |> Expect.equal
                         (Err
-                            [ Resp.Decoder.ExpectingMinusOne
+                            [ Resp.Decoder.ExpectingInteger
                             , Resp.Decoder.ExpectingInteger
                             ]
                         )
@@ -66,7 +66,7 @@ testSuite =
                         |> Result.mapError (List.map .problem)
                         |> Expect.equal
                             (Err
-                                [ Resp.Decoder.ExpectingMinusOne
+                                [ Resp.Decoder.ExpectingInteger
                                 , Resp.Decoder.ExpectingInteger
                                 ]
                             )

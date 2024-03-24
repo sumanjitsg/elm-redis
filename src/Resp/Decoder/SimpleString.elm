@@ -5,7 +5,7 @@ import Resp.Decoder
 
 
 
--- PARSE
+-- PARSER
 
 
 parser : Parser.Parser () Resp.Decoder.Problem String

@@ -1,4 +1,4 @@
-module Resp.Decoder exposing (Problem(..), Value(..))
+module Resp.Decoder exposing (Data(..), Problem(..))
 
 
 type Problem
@@ -7,13 +7,13 @@ type Problem
     | ExpectingDollar
     | ExpectingInteger
     | InvalidNumber
-    | ExpectingLengthMismatch
+    | ExpectingLengthMismatch -- TODO: change problem name
     | ExpectingMinusOne
     | ExpectingMinusCharacter
     | ExpectingAsterisk
 
 
-type Value
+type Data
     = SimpleString String
     | BulkString (Maybe String)
-    | Array (List Value)
+    | Array (List Data)
