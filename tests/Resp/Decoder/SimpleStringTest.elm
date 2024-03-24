@@ -14,17 +14,17 @@ testSuite =
             \_ ->
                 "+OK\u{000D}\n"
                     |> Parser.run Resp.Decoder.SimpleString.parser
-                    |> Expect.equal (Ok "OK")
+                    |> Expect.equal (Ok (Resp.Decoder.SimpleString "OK"))
         , Test.test "parses empty simple strings correctly" <|
             \_ ->
                 "+\u{000D}\n"
                     |> Parser.run Resp.Decoder.SimpleString.parser
-                    |> Expect.equal (Ok "")
+                    |> Expect.equal (Ok (Resp.Decoder.SimpleString ""))
         , Test.test "parses strings containing '+' correctly" <|
             \_ ->
                 "++O+K+\u{000D}\n"
                     |> Parser.run Resp.Decoder.SimpleString.parser
-                    |> Expect.equal (Ok "+O+K+")
+                    |> Expect.equal (Ok (Resp.Decoder.SimpleString "+O+K+"))
         , Test.test "fails on strings without leading '+'" <|
             \_ ->
                 "OK\u{000D}\n"
