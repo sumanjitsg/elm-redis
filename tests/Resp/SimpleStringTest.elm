@@ -12,19 +12,19 @@ testSuite =
             \_ ->
                 "+OK\u{000D}\n"
                     |> Resp.decode Resp.SimpleStringDecoder
-                    |> Result.map Resp.toString
+                    |> Result.andThen Resp.unwrapSimpleString
                     |> Expect.equal (Ok "OK")
         , Test.test "decodes empty simple strings correctly" <|
             \_ ->
                 "+\u{000D}\n"
                     |> Resp.decode Resp.SimpleStringDecoder
-                    |> Result.map Resp.toString
+                    |> Result.andThen Resp.unwrapSimpleString
                     |> Expect.equal (Ok "")
         , Test.test "decodes strings containing '+' correctly" <|
             \_ ->
                 "++O+K+\u{000D}\n"
                     |> Resp.decode Resp.SimpleStringDecoder
-                    |> Result.map Resp.toString
+                    |> Result.andThen Resp.unwrapSimpleString
                     |> Expect.equal (Ok "+O+K+")
         , Test.test "fails on strings without leading '+'" <|
             \_ ->
