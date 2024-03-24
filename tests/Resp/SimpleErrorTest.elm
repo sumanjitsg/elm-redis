@@ -8,19 +8,19 @@ import Test
 testSuite : Test.Test
 testSuite =
     Test.describe "RESP Simple Error Decoder"
-        [ Test.test "parses non-empty error strings correctly" <|
+        [ Test.test "decodes non-empty error strings correctly" <|
             \_ ->
                 "-ERR unknown command 'hello'\u{000D}\n"
                     |> Resp.decode Resp.SimpleErrorDecoder
                     |> Result.andThen Resp.unwrapSimpleError
                     |> Expect.equal (Ok "ERR unknown command 'hello'")
-        , Test.test "parses empty error strings correctly" <|
+        , Test.test "decodes empty error strings correctly" <|
             \_ ->
                 "-\u{000D}\n"
                     |> Resp.decode Resp.SimpleErrorDecoder
                     |> Result.andThen Resp.unwrapSimpleError
                     |> Expect.equal (Ok "")
-        , Test.test "parses error strings containing '-' correctly" <|
+        , Test.test "decodes error strings containing '-' correctly" <|
             \_ ->
                 "--O-K-\u{000D}\n"
                     |> Resp.decode Resp.SimpleErrorDecoder
