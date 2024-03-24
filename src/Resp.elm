@@ -1,4 +1,4 @@
-module Resp exposing (Data, Decoder(..), Problem(..), decode, encode, unwrapBulkString, unwrapSimpleString)
+module Resp exposing (Data, Decoder(..), Problem(..), decode, encode, unwrapBulkString, unwrapSimpleError, unwrapSimpleString)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
@@ -6,12 +6,14 @@ import Parser.Advanced as Parser exposing ((|.), (|=))
 type Data
     = SimpleString String
     | BulkString (Maybe String)
+    | SimpleError String
     | Array (List Data)
 
 
 type Decoder
     = SimpleStringDecoder
     | BulkStringDecoder
+    | SimpleErrorDecoder
 
 
 type Problem
@@ -20,8 +22,7 @@ type Problem
     | ExpectingDollar
     | ExpectingValidLength
     | ExpectingDataOfLength
-    | ExpectingMinusOne
-    | ExpectingMinusCharacter
+    | ExpectingMinus
     | ExpectingAsterisk
 
 
@@ -37,6 +38,9 @@ decode decoder encodedString =
 
         BulkStringDecoder ->
             Parser.run bulkStringDecoder encodedString
+
+        SimpleErrorDecoder ->
+            Parser.run simpleErrorDecoder encodedString
 
 
 
@@ -118,6 +122,27 @@ unwrapBulkString data =
     case data of
         BulkString maybeString ->
             Ok maybeString
+
+        _ ->
+            Err []
+
+
+
+-- SIMPLE ERROR DECODER
+
+
+simpleErrorDecoder : Parser.Parser () Problem Data
+simpleErrorDecoder =
+    Parser.succeed SimpleError
+        |. Parser.symbol (Parser.Token "-" ExpectingMinus)
+        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
+
+
+unwrapSimpleError : Data -> Result (List (Parser.DeadEnd () Problem)) String
+unwrapSimpleError data =
+    case data of
+        SimpleError string ->
+            Ok string
 
         _ ->
             Err []
