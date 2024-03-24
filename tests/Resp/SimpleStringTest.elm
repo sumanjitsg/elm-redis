@@ -1,9 +1,8 @@
-module Resp.Decoder.SimpleStringTest exposing (testSuite)
+module Resp.SimpleStringTest exposing (testSuite)
 
 import Expect
 import Parser.Advanced as Parser
-import Resp.Decoder
-import Resp.Decoder.SimpleString
+import Resp
 import Test
 
 
@@ -13,34 +12,37 @@ testSuite =
         [ Test.test "parses non-empty simple strings correctly" <|
             \_ ->
                 "+OK\u{000D}\n"
-                    |> Parser.run Resp.Decoder.SimpleString.parser
-                    |> Expect.equal (Ok (Resp.Decoder.SimpleString "OK"))
+                    |> Resp.decode Resp.SimpleStringDecoder
+                    |> Result.map Resp.toString
+                    |> Expect.equal (Ok "OK")
         , Test.test "parses empty simple strings correctly" <|
             \_ ->
                 "+\u{000D}\n"
-                    |> Parser.run Resp.Decoder.SimpleString.parser
-                    |> Expect.equal (Ok (Resp.Decoder.SimpleString ""))
+                    |> Resp.decode Resp.SimpleStringDecoder
+                    |> Result.map Resp.toString
+                    |> Expect.equal (Ok "")
         , Test.test "parses strings containing '+' correctly" <|
             \_ ->
                 "++O+K+\u{000D}\n"
-                    |> Parser.run Resp.Decoder.SimpleString.parser
-                    |> Expect.equal (Ok (Resp.Decoder.SimpleString "+O+K+"))
+                    |> Resp.decode Resp.SimpleStringDecoder
+                    |> Result.map Resp.toString
+                    |> Expect.equal (Ok "+O+K+")
         , Test.test "fails on strings without leading '+'" <|
             \_ ->
                 "OK\u{000D}\n"
-                    |> Parser.run Resp.Decoder.SimpleString.parser
+                    |> Resp.decode Resp.SimpleStringDecoder
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.Decoder.ExpectingPlus ])
+                    |> Expect.equal (Err [ Resp.ExpectingPlus ])
         , Test.test "fails on strings without trailing '\\r\\n'" <|
             \_ ->
                 "+OK"
-                    |> Parser.run Resp.Decoder.SimpleString.parser
+                    |> Resp.decode Resp.SimpleStringDecoder
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.Decoder.ExpectingCrlf ])
+                    |> Expect.equal (Err [ Resp.ExpectingCrlf ])
         , Test.test "fails on strings ending with '\\n' instead of '\\r\\n'" <|
             \_ ->
                 "+OK\n"
-                    |> Parser.run Resp.Decoder.SimpleString.parser
+                    |> Resp.decode Resp.SimpleStringDecoder
                     |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.Decoder.ExpectingCrlf ])
+                    |> Expect.equal (Err [ Resp.ExpectingCrlf ])
         ]
