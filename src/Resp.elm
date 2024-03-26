@@ -80,29 +80,6 @@ decode respEncodedString =
         respEncodedString
 
 
-dataToString : Data -> String
-dataToString data =
-    case data of
-        SimpleString string ->
-            string
-
-        BulkString maybeString ->
-            Maybe.withDefault "" maybeString
-
-        SimpleError string ->
-            string
-
-        Array maybeList ->
-            maybeList
-                |> Maybe.map
-                    (List.map dataToString)
-                |> Maybe.map
-                    (String.join ",")
-                |> Maybe.map
-                    (\list -> "[" ++ list ++ "]")
-                |> Maybe.withDefault ""
-
-
 
 -- SIMPLE STRING DECODER
 
