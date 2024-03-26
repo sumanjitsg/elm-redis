@@ -1,4 +1,4 @@
-module Resp exposing (Data, Decoder(..), dataToString, decode, encode)
+module Resp exposing (decode, encode)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
@@ -8,13 +8,6 @@ type Data
     | BulkString (Maybe String)
     | SimpleError String
     | Array (Maybe (List Data))
-
-
-type Decoder
-    = SimpleStringDecoder
-    | BulkStringDecoder
-    | SimpleErrorDecoder
-    | ArrayDecoder
 
 
 type Problem
@@ -28,23 +21,63 @@ type Problem
 
 
 
+-- ENCODERS
+
+
+encode : Data -> String
+encode data =
+    case data of
+        SimpleString value ->
+            "+"
+                ++ value
+                ++ "\u{000D}\n"
+
+        SimpleError value ->
+            "-"
+                ++ value
+                ++ "\u{000D}\n"
+
+        BulkString value ->
+            case value of
+                Just string ->
+                    "$"
+                        ++ String.fromInt (String.length string)
+                        ++ "\u{000D}\n"
+                        ++ string
+                        ++ "\u{000D}\n"
+
+                Nothing ->
+                    "$-1\u{000D}\n"
+
+        Array value ->
+            case value of
+                Just list ->
+                    let
+                        encodedList =
+                            List.map encode list
+                                |> String.join ""
+                    in
+                    "*" ++ String.fromInt (List.length list) ++ "\u{000D}\n" ++ encodedList
+
+                Nothing ->
+                    "*-1\u{000D}\n"
+
+
+
 -- DECODERS
 
 
-decode : Decoder -> String -> Result (List (Parser.DeadEnd () Problem)) Data
-decode decoder respEncodedString =
-    case decoder of
-        SimpleStringDecoder ->
-            Parser.run simpleStringDecoder respEncodedString
-
-        BulkStringDecoder ->
-            Parser.run bulkStringDecoder respEncodedString
-
-        SimpleErrorDecoder ->
-            Parser.run simpleErrorDecoder respEncodedString
-
-        ArrayDecoder ->
-            Parser.run arrayDecoder respEncodedString
+decode : String -> Result (List (Parser.DeadEnd () Problem)) Data
+decode respEncodedString =
+    Parser.run
+        (Parser.oneOf
+            [ simpleStringDecoder
+            , simpleErrorDecoder
+            , bulkStringDecoder
+            , arrayDecoder
+            ]
+        )
+        respEncodedString
 
 
 dataToString : Data -> String
@@ -83,6 +116,17 @@ simpleStringDecoder =
 
 
 
+-- SIMPLE ERROR DECODER
+
+
+simpleErrorDecoder : Parser.Parser () Problem Data
+simpleErrorDecoder =
+    Parser.succeed SimpleError
+        |. Parser.symbol (Parser.Token "-" ExpectingMinus)
+        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
+
+
+
 -- BULK STRING DECODER
 
 
@@ -112,19 +156,6 @@ bulkStringDecoder =
             )
 
 
-getValidLength : String -> Maybe Int
-getValidLength string =
-    String.toInt string
-        |> Maybe.andThen
-            (\length ->
-                if length >= -1 then
-                    Just length
-
-                else
-                    Nothing
-            )
-
-
 validateBulkStringLength : Int -> String -> Parser.Parser () Problem String
 validateBulkStringLength length string =
     if String.length string == length then
@@ -132,17 +163,6 @@ validateBulkStringLength length string =
 
     else
         Parser.problem ExpectingDataOfLength
-
-
-
--- SIMPLE ERROR DECODER
-
-
-simpleErrorDecoder : Parser.Parser () Problem Data
-simpleErrorDecoder =
-    Parser.succeed SimpleError
-        |. Parser.symbol (Parser.Token "-" ExpectingMinus)
-        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
 
 
 
@@ -176,33 +196,19 @@ arrayDecoder =
                                     else
                                         Parser.oneOf
                                             [ simpleStringDecoder
-                                                |> Parser.andThen
-                                                    (\data ->
-                                                        Parser.succeed <|
-                                                            Parser.Loop
-                                                                ( count - 1
-                                                                , list ++ [ data ]
-                                                                )
-                                                    )
                                             , bulkStringDecoder
-                                                |> Parser.andThen
-                                                    (\data ->
-                                                        Parser.succeed <|
-                                                            Parser.Loop
-                                                                ( count - 1
-                                                                , list ++ [ data ]
-                                                                )
-                                                    )
+                                            , simpleErrorDecoder
                                             , arrayDecoder
-                                                |> Parser.andThen
-                                                    (\data ->
-                                                        Parser.succeed <|
-                                                            Parser.Loop
-                                                                ( count - 1
-                                                                , list ++ [ data ]
-                                                                )
-                                                    )
                                             ]
+                                            |> Parser.andThen
+                                                (\data ->
+                                                    Parser.succeed
+                                                        (Parser.Loop
+                                                            ( count - 1
+                                                            , list ++ [ data ]
+                                                            )
+                                                        )
+                                                )
                                 )
 
                     Nothing ->
@@ -220,14 +226,17 @@ validateArrayLength length list =
 
 
 
--- ENCODER
+-- UTILS
 
 
-encode : Data -> Result String String
-encode data =
-    case data of
-        SimpleString value ->
-            Ok ("+" ++ value ++ "\u{000D}\n")
+getValidLength : String -> Maybe Int
+getValidLength string =
+    String.toInt string
+        |> Maybe.andThen
+            (\length ->
+                if length >= -1 then
+                    Just length
 
-        _ ->
-            Err "Resp: Unsupported data type"
+                else
+                    Nothing
+            )

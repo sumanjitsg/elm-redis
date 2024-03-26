@@ -11,34 +11,34 @@ testSuite =
         [ Test.test "decodes non-empty simple string correctly" <|
             \_ ->
                 "+OK\u{000D}\n"
-                    |> Resp.decode Resp.SimpleStringDecoder
-                    |> Result.map Resp.dataToString
-                    |> Expect.equal (Ok "OK")
+                    |> Resp.decode
+                    |> Result.map Resp.encode
+                    |> Expect.equal (Ok "+OK\u{000D}\n")
         , Test.test "decodes empty simple string correctly" <|
             \_ ->
                 "+\u{000D}\n"
-                    |> Resp.decode Resp.SimpleStringDecoder
-                    |> Result.map Resp.dataToString
-                    |> Expect.equal (Ok "")
+                    |> Resp.decode
+                    |> Result.map Resp.encode
+                    |> Expect.equal (Ok "+\u{000D}\n")
         , Test.test "decodes string containing '+' correctly" <|
             \_ ->
                 "++O+K+\u{000D}\n"
-                    |> Resp.decode Resp.SimpleStringDecoder
-                    |> Result.map Resp.dataToString
-                    |> Expect.equal (Ok "+O+K+")
+                    |> Resp.decode
+                    |> Result.map Resp.encode
+                    |> Expect.equal (Ok "++O+K+\u{000D}\n")
         , Test.test "fails on string without leading '+'" <|
             \_ ->
                 "OK\u{000D}\n"
-                    |> Resp.decode Resp.SimpleStringDecoder
+                    |> Resp.decode
                     |> Expect.err
         , Test.test "fails on string without trailing '\\r\\n'" <|
             \_ ->
                 "+OK"
-                    |> Resp.decode Resp.SimpleStringDecoder
+                    |> Resp.decode
                     |> Expect.err
         , Test.test "fails on string ending with '\\n' instead of '\\r\\n'" <|
             \_ ->
                 "+OK\n"
-                    |> Resp.decode Resp.SimpleStringDecoder
+                    |> Resp.decode
                     |> Expect.err
         ]
