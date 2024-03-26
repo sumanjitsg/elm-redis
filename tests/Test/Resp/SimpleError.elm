@@ -1,4 +1,4 @@
-module Resp.SimpleErrorTest exposing (testSuite)
+module Test.Resp.SimpleError exposing (testSuite)
 
 import Expect
 import Resp

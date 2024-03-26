@@ -1,4 +1,4 @@
-module Resp.SimpleStringTest exposing (testSuite)
+module Test.Resp.SimpleString exposing (testSuite)
 
 import Expect
 import Resp

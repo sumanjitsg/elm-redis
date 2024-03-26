@@ -1,4 +1,4 @@
-module Resp.BulkStringTest exposing (testSuite)
+module Test.Resp.BulkString exposing (testSuite)
 
 import Expect
 import Resp
