@@ -1,4 +1,4 @@
-module Resp exposing (Data, Decoder(..), Problem(..), decode, encode, unwrapBulkString, unwrapSimpleError, unwrapSimpleString)
+module Resp exposing (Data, Decoder(..), dataToString, decode, encode)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
@@ -7,13 +7,14 @@ type Data
     = SimpleString String
     | BulkString (Maybe String)
     | SimpleError String
-    | Array (List Data)
+    | Array (Maybe (List Data))
 
 
 type Decoder
     = SimpleStringDecoder
     | BulkStringDecoder
     | SimpleErrorDecoder
+    | ArrayDecoder
 
 
 type Problem
@@ -31,16 +32,42 @@ type Problem
 
 
 decode : Decoder -> String -> Result (List (Parser.DeadEnd () Problem)) Data
-decode decoder encodedString =
+decode decoder respEncodedString =
     case decoder of
         SimpleStringDecoder ->
-            Parser.run simpleStringDecoder encodedString
+            Parser.run simpleStringDecoder respEncodedString
 
         BulkStringDecoder ->
-            Parser.run bulkStringDecoder encodedString
+            Parser.run bulkStringDecoder respEncodedString
 
         SimpleErrorDecoder ->
-            Parser.run simpleErrorDecoder encodedString
+            Parser.run simpleErrorDecoder respEncodedString
+
+        ArrayDecoder ->
+            Parser.run arrayDecoder respEncodedString
+
+
+dataToString : Data -> String
+dataToString data =
+    case data of
+        SimpleString string ->
+            string
+
+        BulkString maybeString ->
+            Maybe.withDefault "" maybeString
+
+        SimpleError string ->
+            string
+
+        Array maybeList ->
+            maybeList
+                |> Maybe.map
+                    (List.map dataToString)
+                |> Maybe.map
+                    (String.join ",")
+                |> Maybe.map
+                    (\list -> "[" ++ list ++ "]")
+                |> Maybe.withDefault ""
 
 
 
@@ -53,16 +80,6 @@ simpleStringDecoder =
         |. Parser.symbol (Parser.Token "+" ExpectingPlus)
         |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
         |. Parser.symbol (Parser.Token "\u{000D}\n" ExpectingCrlf)
-
-
-unwrapSimpleString : Data -> Result (List (Parser.DeadEnd () Problem)) String
-unwrapSimpleString data =
-    case data of
-        SimpleString string ->
-            Ok string
-
-        _ ->
-            Err []
 
 
 
@@ -87,7 +104,7 @@ bulkStringDecoder =
                                 |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
                                 |. Parser.symbol (Parser.Token "\u{000D}\n" ExpectingCrlf)
                                 |> Parser.andThen
-                                    (validateData length)
+                                    (validateBulkStringLength length)
                                 |> Parser.map (BulkString << Just)
 
                     Nothing ->
@@ -108,23 +125,13 @@ getValidLength string =
             )
 
 
-validateData : Int -> String -> Parser.Parser () Problem String
-validateData length string =
+validateBulkStringLength : Int -> String -> Parser.Parser () Problem String
+validateBulkStringLength length string =
     if String.length string == length then
         Parser.succeed string
 
     else
         Parser.problem ExpectingDataOfLength
-
-
-unwrapBulkString : Data -> Result (List (Parser.DeadEnd () Problem)) (Maybe String)
-unwrapBulkString data =
-    case data of
-        BulkString maybeString ->
-            Ok maybeString
-
-        _ ->
-            Err []
 
 
 
@@ -138,14 +145,78 @@ simpleErrorDecoder =
         |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
 
 
-unwrapSimpleError : Data -> Result (List (Parser.DeadEnd () Problem)) String
-unwrapSimpleError data =
-    case data of
-        SimpleError string ->
-            Ok string
 
-        _ ->
-            Err []
+-- ARRAY DECODER
+
+
+arrayDecoder : Parser.Parser () Problem Data
+arrayDecoder =
+    Parser.succeed identity
+        |. Parser.symbol (Parser.Token "*" ExpectingAsterisk)
+        |= Parser.getChompedString (Parser.chompUntil (Parser.Token "\u{000D}\n" ExpectingCrlf))
+        |. Parser.symbol (Parser.Token "\u{000D}\n" ExpectingCrlf)
+        |> Parser.andThen
+            (\parsedLength ->
+                case getValidLength parsedLength of
+                    Just length ->
+                        if length == -1 then
+                            Parser.succeed (Array Nothing)
+
+                        else
+                            Parser.loop ( length, [] )
+                                (\( count, list ) ->
+                                    if count == 0 then
+                                        validateArrayLength length list
+                                            |> Parser.andThen
+                                                (\validatedList ->
+                                                    Parser.succeed
+                                                        (Parser.Done (Array (Just validatedList)))
+                                                )
+
+                                    else
+                                        Parser.oneOf
+                                            [ simpleStringDecoder
+                                                |> Parser.andThen
+                                                    (\data ->
+                                                        Parser.succeed <|
+                                                            Parser.Loop
+                                                                ( count - 1
+                                                                , list ++ [ data ]
+                                                                )
+                                                    )
+                                            , bulkStringDecoder
+                                                |> Parser.andThen
+                                                    (\data ->
+                                                        Parser.succeed <|
+                                                            Parser.Loop
+                                                                ( count - 1
+                                                                , list ++ [ data ]
+                                                                )
+                                                    )
+                                            , arrayDecoder
+                                                |> Parser.andThen
+                                                    (\data ->
+                                                        Parser.succeed <|
+                                                            Parser.Loop
+                                                                ( count - 1
+                                                                , list ++ [ data ]
+                                                                )
+                                                    )
+                                            ]
+                                )
+
+                    Nothing ->
+                        Parser.problem ExpectingValidLength
+            )
+
+
+validateArrayLength : Int -> List Data -> Parser.Parser () Problem (List Data)
+validateArrayLength length list =
+    if List.length list == length then
+        Parser.succeed list
+
+    else
+        Parser.problem ExpectingDataOfLength
 
 
 
