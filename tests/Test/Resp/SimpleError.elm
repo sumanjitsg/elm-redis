@@ -30,18 +30,15 @@ testSuite =
             \_ ->
                 "OK\u{000D}\n"
                     |> Resp.decode Resp.SimpleErrorDecoder
-                    |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.ExpectingMinus ])
+                    |> Expect.err
         , Test.test "fails on error strings without trailing '\\r\\n'" <|
             \_ ->
                 "-OK"
                     |> Resp.decode Resp.SimpleErrorDecoder
-                    |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.ExpectingCrlf ])
+                    |> Expect.err
         , Test.test "fails on error strings ending with '\\n' instead of '\\r\\n'" <|
             \_ ->
                 "-OK\n"
                     |> Resp.decode Resp.SimpleErrorDecoder
-                    |> Result.mapError (List.map .problem)
-                    |> Expect.equal (Err [ Resp.ExpectingCrlf ])
+                    |> Expect.err
         ]
