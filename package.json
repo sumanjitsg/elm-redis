@@ -9,6 +9,7 @@
   "scripts": {
     "test": "npx elm-test",
     "build": "npx elm make src/Main.elm --optimize --output=dist/elm.js && npx tsc -p tsconfig.json",
+    "dev": "npx elm make src/Main.elm --output=dist/elm.js && npx tsc -p tsconfig.json",
     "format": "elm-format src/ --yes"
   },
   "devDependencies": {
