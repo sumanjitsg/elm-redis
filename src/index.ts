@@ -20,7 +20,7 @@ net
     const app: ElmApp<Ports> = Elm.Main.init({});
 
     // Subscribe to messages from Elm. Write them to the socket.
-    app.ports.messageReceiver &&
+    app.ports.sendMessage &&
       app.ports.sendMessage.subscribe(function (message: string) {
         socket.write(message);
       });
