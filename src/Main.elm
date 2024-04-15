@@ -1,6 +1,9 @@
 port module Main exposing (main, messageReceiver, sendMessage)
 
+import Command
+import Database
 import Platform exposing (worker)
+import Resp
 
 
 port sendMessage : String -> Cmd msg
@@ -27,12 +30,12 @@ main =
 
 
 type alias Model =
-    Maybe {}
+    ()
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Nothing, Cmd.none )
+    ( (), Cmd.none )
 
 
 
@@ -44,8 +47,41 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update (Receive message) model =
-    ( model, sendMessage message )
+update (Receive clientMessage) model =
+    case Resp.decode clientMessage of
+        Err _ ->
+            ( model
+            , sendMessage
+                ("ERR invalid message format"
+                    |> Resp.SimpleError
+                    |> Resp.encode
+                )
+            )
+
+        Ok data ->
+            case
+                data
+                    |> Resp.dataToList
+                    |> Command.fromList
+            of
+                Err error ->
+                    ( model
+                    , sendMessage
+                        (error
+                            |> Command.errorToString
+                            |> Resp.SimpleError
+                            |> Resp.encode
+                        )
+                    )
+
+                Ok command ->
+                    ( model
+                    , sendMessage
+                        (command
+                            |> Database.run
+                            |> Resp.encode
+                        )
+                    )
 
 
 
