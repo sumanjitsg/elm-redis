@@ -1,12 +1,12 @@
-module Resp exposing (decode, encode)
+module Resp exposing (Data(..), dataToList, decode, encode)
 
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
 
 type Data
     = SimpleString String
-    | BulkString (Maybe String)
     | SimpleError String
+    | BulkString (Maybe String)
     | Array (Maybe (List Data))
 
 
@@ -204,6 +204,27 @@ validateArrayLength length list =
 
 
 -- UTILS
+
+
+dataToList : Data -> List String
+dataToList data =
+    case data of
+        SimpleString value ->
+            [ value ]
+
+        SimpleError value ->
+            [ value ]
+
+        BulkString value ->
+            [ Maybe.withDefault "" value ]
+
+        Array value ->
+            case value of
+                Just list ->
+                    List.concatMap dataToList list
+
+                Nothing ->
+                    []
 
 
 getValidLength : String -> Maybe Int
