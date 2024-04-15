@@ -6,10 +6,10 @@ import Platform exposing (worker)
 import Resp
 
 
-port sendMessage : String -> Cmd msg
+port sendMessage : { clientId : String, message : String } -> Cmd msg
 
 
-port messageReceiver : (String -> msg) -> Sub msg
+port messageReceiver : ({ clientId : String, message : String } -> msg) -> Sub msg
 
 
 
@@ -43,19 +43,21 @@ init _ =
 
 
 type Msg
-    = Receive String
+    = Receive { clientId : String, message : String }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update (Receive clientMessage) model =
-    case Resp.decode clientMessage of
+update (Receive { clientId, message }) model =
+    case Resp.decode message of
         Err _ ->
             ( model
             , sendMessage
-                ("ERR invalid message format"
-                    |> Resp.SimpleError
-                    |> Resp.encode
-                )
+                { clientId = clientId
+                , message =
+                    "ERR invalid message format"
+                        |> Resp.SimpleError
+                        |> Resp.encode
+                }
             )
 
         Ok data ->
@@ -67,20 +69,24 @@ update (Receive clientMessage) model =
                 Err error ->
                     ( model
                     , sendMessage
-                        (error
-                            |> Command.errorToString
-                            |> Resp.SimpleError
-                            |> Resp.encode
-                        )
+                        { clientId = clientId
+                        , message =
+                            error
+                                |> Command.errorToString
+                                |> Resp.SimpleError
+                                |> Resp.encode
+                        }
                     )
 
                 Ok command ->
                     ( model
                     , sendMessage
-                        (command
-                            |> Database.run
-                            |> Resp.encode
-                        )
+                        { clientId = clientId
+                        , message =
+                            command
+                                |> Database.run
+                                |> Resp.encode
+                        }
                     )
 
 
