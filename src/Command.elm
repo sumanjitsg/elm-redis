@@ -50,5 +50,4 @@ errorToString error =
             "ERR unknown command '"
                 ++ command
                 ++ "', with args beginning with: "
-                ++ String.join " "
-                    (List.map (\arg -> "'" ++ arg ++ "'") args)
+                ++ String.join " " (List.map (\arg -> "'" ++ arg ++ "'") args)

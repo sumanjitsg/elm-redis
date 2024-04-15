@@ -9,8 +9,8 @@ run command =
     case command of
         Command.Ping maybeArg ->
             case maybeArg of
-                Just arg ->
-                    Resp.BulkString (Just arg)
-
                 Nothing ->
                     Resp.SimpleString "PONG"
+
+                Just arg ->
+                    Resp.BulkString (Just arg)
