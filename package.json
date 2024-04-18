@@ -26,7 +26,6 @@
     "build": "npx elm make src/Main.elm --optimize --output=dist/elm.js && npx tsc -p tsconfig.json",
     "dev": "npx elm make src/Main.elm --output=dist/elm.js && npx tsc -p tsconfig.json",
     "format": "elm-format src/ --yes",
-    "publish": "npm publish --access public",
     "prepublishOnly": "npm run test && npm run build"
   },
   "devDependencies": {
