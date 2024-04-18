@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // @ts-ignore
 import { Elm } from "../dist/elm.js";
 import net from "net";
