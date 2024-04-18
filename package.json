@@ -1,16 +1,33 @@
 {
-  "name": "elm-redis",
-  "description": "In-memory DB powered by Elm",
-  "version": "0.0.0",
+  "name": "@sumanjitsg/redistil-elm",
+  "description": "A minimalist Redis implementation in Elm, bringing the power of functional programming to Redis interactions.",
+  "version": "0.1.0",
   "main": "dist/index.js",
-  "keywords": [],
+  "bin": {
+    "redistil-elm-server": "dist/index.js"
+  },
+  "files": [
+    "dist/*.js"
+  ],
+  "keywords": [
+    "elm",
+    "redis",
+    "database",
+    "functional programming"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sumanjitsg/redistil-elm.git"
+  },
   "author": "Sumanjit Sengupta",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "scripts": {
     "test": "npx elm-test",
     "build": "npx elm make src/Main.elm --optimize --output=dist/elm.js && npx tsc -p tsconfig.json",
     "dev": "npx elm make src/Main.elm --output=dist/elm.js && npx tsc -p tsconfig.json",
-    "format": "elm-format src/ --yes"
+    "format": "elm-format src/ --yes",
+    "publish": "npm publish --access public",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "devDependencies": {
     "@types/elm": "^0.19.3",
