@@ -1,10 +1,10 @@
 {
-  "name": "@sumanjitsg/redistil-elm",
+  "name": "@sumanjitsg/redistil",
   "description": "A minimalist Redis implementation in Elm, bringing the power of functional programming to Redis interactions.",
   "version": "0.1.0",
   "main": "dist/index.js",
   "bin": {
-    "redistil-elm-server": "dist/index.js"
+    "redistil-server": "dist/index.js"
   },
   "files": [
     "dist/*.js"
@@ -17,7 +17,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sumanjitsg/redistil-elm.git"
+    "url": "git+https://github.com/sumanjitsg/redistil.git"
   },
   "author": "Sumanjit Sengupta",
   "license": "GPL-3.0-only",
