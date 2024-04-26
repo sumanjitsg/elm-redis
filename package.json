@@ -27,7 +27,8 @@
     "dev": "npx elm make src/Main.elm --output=dist/elm.js && npx tsc -p tsconfig.json",
     "format": "elm-format src/ --yes",
     "prepublishOnly": "npm run test && npm run build",
-    "release": "standard-version"
+    "check-release-branch": "if [ $(git rev-parse --abbrev-ref HEAD) != 'main' ]; then echo 'Release script can only be run from the main branch.' && exit 1; fi",
+    "release": "npm run check-release-branch && npm run prepublishOnly && standard-version && npm publish --access public"
   },
   "devDependencies": {
     "@types/elm": "^0.19.3",
