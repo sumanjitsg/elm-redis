@@ -17,7 +17,7 @@ A minimalist Redis re-implementation in Elm, bringing the power of functional pr
 ### Prerequisites
 * Linux based environment
 * Node.js v20 or later
-* Redis CLI (`sudo apt install redis-tools`)
+* [Redis CLI](https://redis.io/docs/latest/develop/connect/cli/) (`sudo apt install redis-tools`)
 
 ### Install and Run
 Install from npm:
