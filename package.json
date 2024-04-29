@@ -1,7 +1,7 @@
 {
   "name": "@sumanjitsg/redistil",
   "description": "A minimalist Redis implementation in Elm, bringing the power of functional programming to Redis interactions.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "dist/index.js",
   "bin": {
     "redistil-server": "dist/index.js"
